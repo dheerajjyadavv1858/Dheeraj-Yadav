@@ -1,39 +1,286 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-    <title>Calculator</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Advanced Calculator</title>
+  <style>
+    :root{
+      --bg:#f2f2f8;--card:#fff;--muted:#666;--accent:#ff6b6b;--btn:#efefef
+    }
+    [data-theme="dark"]{
+      --bg:#111213;--card:#141516;--muted:#bbb;--accent:#ff7b7b;--btn:#222
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--muted); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px}
+    .wrap{width:100%;max-width:960px}
+    .topbar{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .title{font-size:18px;color:var(--muted);font-weight:600}
+    .controls{display:flex;gap:8px}
+    button.small{padding:8px 10px;border-radius:8px;border:0;background:var(--btn);cursor:pointer;color:var(--muted)}
+    .layout{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.06)}
+    .calc{display:flex;flex-direction:column;gap:10px}
+    #display{width:100%;height:56px;padding:10px;font-size:22px;border-radius:8px;border:1px solid #ddd;background:transparent;color:var(--muted)}
+    .row{display:flex;gap:8px}
+    .btn{flex:1;padding:14px;border-radius:8px;border:1px solid #ddd;background:var(--btn);cursor:pointer;font-size:16px}
+    .btn.op{background:#f6f7ff;border-color:#dde}
+    .btn.action{background:var(--accent);color:white;border:none}
+    .btn.wide{flex:2}
+    .sidebar{display:flex;flex-direction:column;gap:12px}
+    .history{max-height:420px;overflow:auto;padding:8px;border-radius:8px;border:1px dashed #eee;background:linear-gradient(0deg,transparent,rgba(0,0,0,0.01))}
+    .hist-item{padding:8px;border-radius:6px;margin-bottom:6px;cursor:pointer;background:transparent}
+    .hist-item:hover{background:#f4f4ff}
+    .mem-row{display:flex;gap:6px}
+    .kbd-hint{font-size:12px;color:var(--muted)}
+    footer.small{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+    @media(max-width:880px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
+  </style>
 </head>
-<body>
-
-<div class="calculator">
-    <input type="text" id="display">
-
-    <div class="buttons">
-        <button onclick="add('7')">7</button>
-        <button onclick="add('8')">8</button>
-        <button onclick="add('9')">9</button>
-        <button onclick="add('/')">/</button>
-
-        <button onclick="add('4')">4</button>
-        <button onclick="add('5')">5</button>
-        <button onclick="add('6')">6</button>
-        <button onclick="add('*')">*</button>
-
-        <button onclick="add('1')">1</button>
-        <button onclick="add('2')">2</button>
-        <button onclick="add('3')">3</button>
-        <button onclick="add('-')">-</button>
-
-        <button onclick="add('0')">0</button>
-        <button onclick="add('.')">.</button>
-        <button onclick="calculate()">=</button>
-        <button onclick="add('+')">+</button>
-
-        <button onclick="clearDisplay()" class="clear">Clear</button>
+<body data-theme="light">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">Advanced Calculator</div>
+      <div class="controls">
+        <button class="small" id="themeToggle">Dark</button>
+        <button class="small" id="copyBtn">Copy</button>
+      </div>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <div class="layout">
+      <div class="card calc">
+        <input id="display" placeholder="0" readonly />
+
+        <div class="row">
+          <button class="btn" onclick="press('(')">(</button>
+          <button class="btn" onclick="press(')')">)</button>
+          <button class="btn" onclick="backspace()">⌫</button>
+          <button class="btn op" onclick="press('%')">%</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('7')">7</button>
+          <button class="btn" onclick="press('8')">8</button>
+          <button class="btn" onclick="press('9')">9</button>
+          <button class="btn op" onclick="press('/')">÷</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('4')">4</button>
+          <button class="btn" onclick="press('5')">5</button>
+          <button class="btn" onclick="press('6')">6</button>
+          <button class="btn op" onclick="press('*')">×</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('1')">1</button>
+          <button class="btn" onclick="press('2')">2</button>
+          <button class="btn" onclick="press('3')">3</button>
+          <button class="btn op" onclick="press('-')">−</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('0')">0</button>
+          <button class="btn" onclick="press('.')">.</button>
+          <button class="btn" onclick="press('^')">^</button>
+          <button class="btn op" onclick="press('+')">+</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('sin(')">sin</button>
+          <button class="btn" onclick="press('cos(')">cos</button>
+          <button class="btn" onclick="press('tan(')">tan</button>
+          <button class="btn" onclick="press('sqrt(')">√</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="press('ln(')">ln</button>
+          <button class="btn" onclick="press('log(')">log</button>
+          <button class="btn" onclick="press('pow(')">pow</button>
+          <button class="btn" onclick="press('abs(')">abs</button>
+        </div>
+
+        <div class="row">
+          <button class="btn" onclick="clearEntry()">CE</button>
+          <button class="btn" onclick="clearAll()">C</button>
+          <button class="btn action" onclick="calculate()">=</button>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:600;color:var(--muted)">Memory</div>
+            <div class="kbd-hint">M+, M-, MR, MC</div>
+          </div>
+          <div class="mem-row">
+            <button class="small" onclick="memAdd()">M+</button>
+            <button class="small" onclick="memSub()">M-</button>
+            <button class="small" onclick="memRecall()">MR</button>
+            <button class="small" onclick="memClear()">MC</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:600;color:var(--muted)">History</div>
+            <div class="kbd-hint">Click to reuse</div>
+          </div>
+          <div class="history" id="history"></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:600;color:var(--muted)">Keyboard</div>
+            <div class="kbd-hint">Enter =, Esc clear, Backspace ⌫</div>
+          </div>
+          <div class="kbd-hint">You can type expressions: <code>sin(30)</code>, <code>2^8</code>, <code>sqrt(9)</code></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="small">Tip: Use parentheses for precedence. Functions use radians (sin/cos/tan). <br>Replace '^' with exponent (works) — e.g. <code>2^10</code>.</footer>
+  </div>
+
+<script>
+  const disp = document.getElementById('display');
+  const historyEl = document.getElementById('history');
+  let memory = 0;
+  let hist = [];
+
+  // helper to insert text at end
+  function press(v){
+    // show as plain text append
+    disp.value = (disp.value || '') + v;
+  }
+  function backspace(){
+    disp.value = (disp.value || '').slice(0, -1);
+  }
+  function clearEntry(){ disp.value = ''; }
+  function clearAll(){ disp.value = ''; hist = []; renderHistory(); memory = 0; }
+
+  // memory ops
+  function memAdd(){ memory = memory + (parseFloat(disp.value) || 0); flash('M+'); }
+  function memSub(){ memory = memory - (parseFloat(disp.value) || 0); flash('M-'); }
+  function memRecall(){ disp.value = String(memory); flash('MR'); }
+  function memClear(){ memory = 0; flash('MC'); }
+
+  function flash(t){
+    // small visual feedback (console)
+    console.log('memory:', t, memory);
+  }
+
+  // sanitize and map functions to Math
+  function prepareExpression(input){
+    if(!input) return '';
+    // Replace percent: number% -> (number/100)
+    input = input.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+
+    // caret ^ to **
+    input = input.replace(/\^/g, '**');
+
+    // map function names to Math.*
+    const map = {
+      'sin': 'Math.sin',
+      'cos': 'Math.cos',
+      'tan': 'Math.tan',
+      'asin': 'Math.asin',
+      'acos': 'Math.acos',
+      'atan': 'Math.atan',
+      'sqrt': 'Math.sqrt',
+      'abs': 'Math.abs',
+      'exp': 'Math.exp',
+      'pow': 'Math.pow',
+      // ln -> natural log
+      'ln': 'Math.log',
+      // log -> base10 (approx)
+      'log': 'Math.log10'
+    };
+
+    // replace function names followed by (
+    input = input.replace(/\b([a-zA-Z]+)\s*\(/g, (m,fn)=> {
+      fn = fn.toLowerCase();
+      if(map[fn]) return map[fn] + '(';
+      return fn + '('; // unknown function - leave as is
+    });
+
+    // allow only safe characters (digits, operators, parentheses, ., Math, letters for functions, *)
+    // But be careful: we still will evaluate via Function. We'll strip suspicious chars.
+    // Remove any characters other than allowed:
+    input = input.replace(/[^0-9+\-*/().,%Mathlognpowasinectabrfx ]/g, function(ch){
+      // allow letters used in Math.* and names
+      if(/[a-zA-Z]/.test(ch)) return ch;
+      return '';
+    });
+
+    return input;
+  }
+
+  function calculate(){
+    const raw = disp.value;
+    const expr = prepareExpression(raw);
+    if(!expr){ disp.value = ''; return; }
+    try{
+      // use Function to evaluate expression
+      // disable access to global by not exposing undesired objects (basic)
+      const result = Function('"use strict"; return (' + expr + ')')();
+      const out = (typeof result === 'number' && !isNaN(result)) ? result : 'Error';
+      disp.value = String(out);
+      pushHistory(raw, out);
+    }catch(e){
+      console.error(e);
+      disp.value = 'Error';
+    }
+  }
+
+  function pushHistory(input, result){
+    hist.unshift({i:input, r:result});
+    if(hist.length>30) hist.pop();
+    renderHistory();
+  }
+
+  function renderHistory(){
+    historyEl.innerHTML = '';
+    hist.forEach((h, idx)=>{
+      const el = document.createElement('div');
+      el.className = 'hist-item';
+      el.innerHTML = `<div style="font-weight:600;color:#333">${h.r}</div><div style="font-size:12px;color:var(--muted)">${h.i}</div>`;
+      el.onclick = ()=>{ disp.value = h.i; }
+      historyEl.appendChild(el);
+    });
+  }
+
+  // copy to clipboard
+  document.getElementById('copyBtn').addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard.writeText(disp.value || '');
+      alert('Copied: ' + (disp.value || ''));
+    }catch(e){ alert('Copy failed'); }
+  });
+
+  // theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle.addEventListener('click', ()=>{
+    const body = document.body;
+    if(body.getAttribute('data-theme') === 'light'){
+      body.setAttribute('data-theme','dark'); themeToggle.innerText = 'Light';
+    } else { body.setAttribute('data-theme','light'); themeToggle.innerText = 'Dark'; }
+  });
+
+  // keyboard support
+  window.addEventListener('keydown', (e)=>{
+    if(e.ctrlKey || e.metaKey) return;
+    if(e.key === 'Enter'){ e.preventDefault(); calculate(); return; }
+    if(e.key === 'Backspace'){ backspace(); return; }
+    if(e.key === 'Escape'){ clearEntry(); return; }
+    const allowed = '0123456789+-*/().%^';
+    if(allowed.includes(e.key)) { press(e.key); return; }
+    // support letters for functions
+    if(/[a-zA-Z]/.test(e.key)){ press(e.key); return; }
+  });
+
+  // quick load: example
+  // press('2'); press('+'); press('2');
+</script>
 </body>
 </html>
